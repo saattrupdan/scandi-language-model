@@ -44,22 +44,16 @@ def main():
     tokeniser.add_special_tokens(special_tokens)
 
     # Initialise the normaliser
-    normaliser = normalizers.Sequence([
-        normalizers.NFKC()
-    ])
+    normaliser = normalizers.NFKC()
     tokeniser.normalizer = normaliser
 
     # Initialise the pre-tokeniser
-    pre_tokeniser = pre_tokenizers.Sequence([
-        pre_tokenizers.Metaspace(add_prefix_space=True),
-        pre_tokenizers.Punctuation(behaviour='isolated'),
-        pre_tokenizers.Digits(individual_digits=True)
-    ])
+    pre_tokeniser = pre_tokenizers.Metaspace(add_prefix_space=True)
     tokeniser.pre_tokenizer = pre_tokeniser
 
     # Initialise the post-processor
-    post_processor = processors.RobertaProcessing(cls=('<s>', 0),
-                                                  sep=('</s>', 1))
+    params = dict(cls=('<s>', 0), sep=('</s>', 1))
+    post_processor = processors.RobertaProcessing(**params)
     tokeniser.post_processor = post_processor
 
     # Initialise the decoder
@@ -67,7 +61,7 @@ def main():
     tokeniser.decoder = decoder
 
     # Initialise the trainer
-    trainer = trainers.UnigramTrainer(vocab_size=200_000,
+    trainer = trainers.UnigramTrainer(vocab_size=100_000,
                                       special_tokens=special_tokens)
 
     # Train the tokeniser
@@ -81,6 +75,13 @@ if __name__ == '__main__':
     main()
 
     tokeniser = tokenizers.Tokenizer.from_file('dasvno-wiki.json')
+
+    # Load other tokenisers
+    from transformers import AutoTokenizer
+    electra_model_id = 'Maltehb/-l-ctra-danish-electra-small-cased'
+    electra_tok = AutoTokenizer.from_pretrained(electra_model_id)
+    dabert_model_id = 'Maltehb/danish-bert-botxo'
+    dabert_tok = AutoTokenizer.from_pretrained(dabert_model_id)
 
     # Print the vocabulary size
     print(f'Vocabulary size: {tokeniser.get_vocab_size():,}')
@@ -116,9 +117,13 @@ if __name__ == '__main__':
     ]
     for example in test_examples:
         print(example, tokeniser.encode(example).tokens)
+        print([electra_tok.decode(i) for i in electra_tok.encode(example)])
+        print([dabert_tok.decode(i) for i in dabert_tok.encode(example)])
         print()
 
     while True:
         input_text = input('Enter text:\n> ')
         print(tokeniser.encode(input_text).tokens)
+        print([electra_tok.decode(i) for i in electra_tok.encode(input_text)])
+        print([dabert_tok.decode(i) for i in dabert_tok.encode(input_text)])
         print()
