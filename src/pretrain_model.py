@@ -4,6 +4,7 @@ from transformers import (RobertaConfig, RobertaForMaskedLM,
                           DataCollatorForLanguageModeling, Trainer,
                           TrainingArguments, PreTrainedTokenizerFast)
 from datasets import Dataset
+from functools import partial
 
 
 def main():
@@ -42,13 +43,19 @@ def main():
     test_dataset = splits['test']
 
     # Tokenise the datasets
-    def tokenise(examples: dict) -> dict:
+    def tokenise(examples: dict, max_length: int) -> dict:
         return tokeniser(examples['text'],
                          truncation=True,
-                         padding=True)
-    train_dataset = train_dataset.map(tokenise, batched=True)
-    val_dataset = val_dataset.map(tokenise, batched=True)
-    test_dataset = test_dataset.map(tokenise, batched=True)
+                         padding=True,
+                         max_length=max_length)
+    tokenise_128 = partial(tokenise, max_length=128)
+    train_dataset_128 = train_dataset.map(tokenise_128, batched=True)
+    val_dataset_128 = val_dataset.map(tokenise_128, batched=True)
+    test_dataset_128 = test_dataset.map(tokenise_128, batched=True)
+    tokenise_512 = partial(tokenise, max_length=512)
+    train_dataset_512 = train_dataset.map(tokenise_512, batched=True)
+    val_dataset_512 = val_dataset.map(tokenise_512, batched=True)
+    test_dataset_512 = test_dataset.map(tokenise_512, batched=True)
 
     # Set up data collator
     data_collator = DataCollatorForLanguageModeling(tokenizer=tokeniser,
@@ -58,7 +65,7 @@ def main():
     # Set up training arguments
     training_args = TrainingArguments(output_dir='roberta-base-wiki-da',
                                       overwrite_output_dir=True,
-                                      max_steps=1_000_000,
+                                      max_steps=900_000,
                                       per_device_train_batch_size=8,
                                       per_device_eval_batch_size=8,
                                       gradient_accumulation_steps=32,
@@ -72,11 +79,19 @@ def main():
     trainer = Trainer(model=model,
                       args=training_args,
                       data_collator=data_collator,
-                      train_dataset=train_dataset,
-                      eval_dataset=val_dataset)
+                      train_dataset=train_dataset_128.shuffle(),
+                      eval_dataset=val_dataset_128)
 
-    # Train model
+    # Train model on 128-length sequences
     trainer.train()
+
+    # Set up trainer for 512-length sequence
+    trainer.train_dataset = train_dataset_512.shuffle()
+    trainer.eval_dataset = val_dataset_512
+    trainer.max_steps = 100_000
+
+    # Train model on 512-length sequences
+    trainer.train(resume_from_checkpoint=True)
 
     # Evaluate model
     trainer.evaluate(test_dataset)
