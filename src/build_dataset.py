@@ -1,13 +1,13 @@
 '''Combine all the datasets as a HuggingFace dataset'''
 
-from datasets import Dataset, concatenate_datasets
+from datasets import Dataset, concatenate_datasets, interleave_datasets
 
 
 def main():
     '''Main function'''
 
     # Set up paths to the datasets
-    da_lexdk_path = 'data/da-lexdk.txt'
+    da_lexdk_path = 'data/da-lexdk-preprocessed.txt'
     da_wiki_path = 'data/da-wikipedia-raw-preprocessed.txt'
     sv_wiki_path = 'data/sv-wikipedia-raw-preprocessed.txt'
     no_wiki_path = 'data/no-wikipedia-raw-preprocessed.txt'
@@ -23,8 +23,8 @@ def main():
     fo_dataset = Dataset.from_text(fo_wiki_path)
 
     # Concatenate and shuffle the datasets
-    all_datasets = [da_dataset, sv_dataset, no_dataset, is_dataset, fo_dataset]
-    dataset = concatenate_datasets(all_datasets).shuffle()
+    all_datasets = [da_dataset, sv_dataset, no_dataset]#, is_dataset, fo_dataset]
+    dataset = interleave_datasets(all_datasets).shuffle()
 
     # Save the dataset
     dataset.save_to_disk('data/dataset')
