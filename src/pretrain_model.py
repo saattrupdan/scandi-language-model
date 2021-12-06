@@ -33,7 +33,7 @@ def main():
     model = RobertaForMaskedLM(config=config)
 
     # Load dataset
-    dataset = Dataset.load_from_disk('data/dataset')
+    dataset = Dataset.load_from_disk('data/da_dataset')
 
     # Split dataset into train and validation
     splits = dataset.train_test_split(train_size=0.9, seed=4242)
@@ -94,7 +94,7 @@ def main():
     trainer.train(resume_from_checkpoint=True)
 
     # Evaluate model
-    trainer.evaluate(test_dataset)
+    trainer.evaluate(test_dataset_512)
 
     # Save model
     trainer.save_model()
