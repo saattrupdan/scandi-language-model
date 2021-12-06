@@ -37,6 +37,17 @@ def main():
     val_dataset, test_dataset = temp_dataset.train_test_split(train_size=0.5,
                                                               seed=4242)
 
+    # Tokenise the datasets
+    def tokenise(examples: dict) -> dict:
+        doc = examples['text']
+        return tokeniser(doc,
+                         truncation=True,
+                         padding=True,
+                         max_length=512)
+    train_dataset = train_dataset.map(tokenise, batched=True)
+    val_dataset = val_dataset.map(tokenise, batched=True)
+    test_dataset = test_dataset.map(tokenise, batched=True)
+
     # Set up data collator
     data_collator = DataCollatorForLanguageModeling(tokenizer=tokeniser,
                                                     mlm=True,
