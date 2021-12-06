@@ -10,7 +10,7 @@ def main():
     '''Main function'''
 
     # Load pretrained tokenizer
-    tokeniser = PretrainedTokenizerFast(tokenizer_file='dasvno-wiki.json',
+    tokeniser = PretrainedTokenizerFast(tokenizer_file='wiki-da-sv-no.json',
                                         bos_token='<s>',
                                         cls_token='<s>',
                                         eos_token='</s>',
@@ -54,9 +54,9 @@ def main():
                                                     mlm_probability=0.15)
 
     # Set up training arguments
-    training_args = TrainingArguments(output_dir='dasvno-wiki',
+    training_args = TrainingArguments(output_dir='roberta-base-wiki-da-sv-no',
                                       overwrite_output_dir=True,
-                                      num_train_epochs=10,
+                                      num_train_epochs=3,
                                       per_device_train_batch_size=8,
                                       per_device_eval_batch_size=8,
                                       gradient_accumulation_steps=32,

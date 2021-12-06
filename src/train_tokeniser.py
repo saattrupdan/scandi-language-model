@@ -69,13 +69,13 @@ def main():
     tokeniser.train_from_iterator(iterator=dataset['text'], trainer=trainer)
 
     # Save the tokeniser
-    tokeniser.save('dasvno-wiki.json')
+    tokeniser.save('wiki-da-sv-no.json')
 
 
 if __name__ == '__main__':
     main()
 
-    tokeniser = tokenizers.Tokenizer.from_file('dasvno-wiki.json')
+    tokeniser = tokenizers.Tokenizer.from_file('wiki-da-sv-no.json')
 
     # Load other tokenisers
     from transformers import AutoTokenizer
