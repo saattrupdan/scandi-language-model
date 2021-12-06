@@ -76,8 +76,8 @@ def main():
                                       save_total_limit=1,
                                       learning_rate=1e-4,
                                       warmup_steps=10_000,
-                                      weight_decay=0.01)
-
+                                      weight_decay=0.01,
+                                      report_to='all')
 
     # Initialise trainer
     trainer = Trainer(model=model,
