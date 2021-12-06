@@ -2,7 +2,7 @@
 
 from transformers import (RobertaConfig, RobertaForMaskedLM,
                           DataCollatorForLanguageModeling, Trainer,
-                          TrainingArguments, PretrainedTokenizerFast)
+                          TrainingArguments, PreTrainedTokenizerFast)
 from datasets import Dataset
 
 
@@ -10,7 +10,7 @@ def main():
     '''Main function'''
 
     # Load pretrained tokenizer
-    tokeniser = PretrainedTokenizerFast(tokenizer_file='wiki-da-sv-no.json',
+    tokeniser = PreTrainedTokenizerFast(tokenizer_file='wiki-da-sv-no.json',
                                         bos_token='<s>',
                                         cls_token='<s>',
                                         eos_token='</s>',
@@ -18,6 +18,9 @@ def main():
                                         unk_token='<unk>',
                                         mask_token='<mask>',
                                         pad_token='<pad>')
+
+    # Set the maximal sequence length
+    tokeniser.model_max_length = 512
 
     # Initialise config
     config = RobertaConfig(pad_token_id=4,
@@ -32,15 +35,15 @@ def main():
     dataset = Dataset.load_from_disk('data/dataset')
 
     # Split dataset into train and validation
-    train_dataset, temp_dataset = dataset.train_test_split(train_size=0.9,
-                                                           seed=4242)
-    val_dataset, test_dataset = temp_dataset.train_test_split(train_size=0.5,
-                                                              seed=4242)
+    splits = dataset.train_test_split(train_size=0.9, seed=4242)
+    train_dataset = splits['train']
+    splits = splits['test'].train_test_split(train_size=0.5, seed=4242)
+    val_dataset = splits['train']
+    test_dataset = splits['test']
 
     # Tokenise the datasets
     def tokenise(examples: dict) -> dict:
-        doc = examples['text']
-        return tokeniser(doc,
+        return tokeniser(examples['text'],
                          truncation=True,
                          padding=True,
                          max_length=512)
@@ -78,3 +81,7 @@ def main():
 
     # Save model
     trainer.save_model()
+
+
+if __name__ == '__main__':
+    main()
