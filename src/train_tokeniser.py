@@ -44,7 +44,10 @@ def main():
     tokeniser.add_special_tokens(special_tokens)
 
     # Initialise the normaliser
-    normaliser = normalizers.NFKC()
+    normaliser = normalizers.Sequence([
+        normalizers.NFKC(),
+        normalizers.Lowercase()
+    ])
     tokeniser.normalizer = normaliser
 
     # Initialise the pre-tokeniser
