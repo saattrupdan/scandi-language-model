@@ -5,8 +5,8 @@ from typing import List
 import pandas as pd
 
 
-class CompoundNounPreTokenizer:
-    '''A pre-tokeniser for compound nouns.
+class InterfixPreTokenizer:
+    '''A pre-tokeniser for interfixes.
 
     Args:
         dictionary (list of str):
@@ -32,6 +32,17 @@ class CompoundNounPreTokenizer:
                            for length in range(1, dictionary.length.max())}
         self.interfixes = interfixes
 
+    def _lookup(self, string: str) -> bool:
+        '''Check if the given string is a dictionary word.
+
+        Args:
+            string (str): The string to check.
+
+        Returns:
+            bool: True if the string is a dictionary word, False otherwise.
+        '''
+        return string in self.dictionary.get(len(string), [])
+
     def compound_split(self,
                        _: int,
                        normalized_string: NormalizedString
@@ -47,26 +58,24 @@ class CompoundNounPreTokenizer:
                 The list of normalized strings.
         '''
         string = str(normalized_string)
-        length = len(string)
-
         splits = list()
         potential_ifixes = [char_idx for char_idx, char in enumerate(string)
                             if char in self.interfixes]
         for char_idx in potential_ifixes:
 
-            if string[:char_idx] in self.dictionary.get(char_idx, []):
+            if (self._lookup(string[:char_idx]) and
+                    not self._lookup(string[:char_idx + 1])):
 
                 remaining = normalized_string[char_idx + 1:]
                 remaining_splits = self.compound_split(0, remaining)
-                dictionary = self.dictionary.get(length - char_idx - 1, [])
 
                 if (len(remaining_splits) == 1 and
-                        str(remaining_splits[0]) not in dictionary):
+                        not self._lookup(str(remaining_splits[0]))):
                     continue
 
                 else:
                     splits.append(normalized_string[:char_idx])
-                    splits.append(NormalizedString('##' + string[char_idx]))
+                    splits.append(NormalizedString('<interfix>'))
                     splits.extend(remaining_splits)
                     return splits
 
@@ -85,20 +94,29 @@ class CompoundNounPreTokenizer:
 if __name__ == '__main__':
     # Load the dictionary
     csv_path = 'data/retskrivningsordbog-basic.csv'
-    dictionary = (pd.read_csv(csv_path, sep=';', names=['word', 'type'])
-                    .query('type == "sb."')
-                    .word
-                    .str.replace('[0-9]+[.] ', '', regex=True)
-                    .str.lower()
-                    .drop_duplicates()
-                    .sort_values(key=lambda x: x.str.len())
-                    .tolist())
+    dictionary = pd.read_csv(csv_path, sep=';', names=['word', 'type'])
+    dictionary['type'] = dictionary.type.str.split(',')
+    dictionary = (dictionary
+                  .explode('type')
+                  .query('type in ["sb.", "talord", "sb. pl."]')
+                  .word
+                  .str.replace('[0-9]+[.] ', '', regex=True)
+                  .str.lower()
+                  .drop_duplicates()
+                  .sort_values(key=lambda x: x.str.len())
+                  .tolist())
     dictionary = [word for word in dictionary
-                  if ' ' not in word and len(word) > 1]
+                  if ' ' not in word and len(word) > 2]
 
     # Initialise the pre-tokeniser
-    compound_noun = CompoundNounPreTokenizer(dictionary=dictionary,
-                                             interfixes=['e', 's'])
+    interfix_pretok = InterfixPreTokenizer(dictionary=dictionary,
+                                           interfixes=['e', 's', 'n'])
+
+    from transformers import AutoTokenizer
+    electra_model_id = 'Maltehb/-l-ctra-danish-electra-small-cased'
+    electra_tok = AutoTokenizer.from_pretrained(electra_model_id)
+    dabert_model_id = 'Maltehb/danish-bert-botxo'
+    dabert_tok = AutoTokenizer.from_pretrained(dabert_model_id)
 
     # Pre-tokenise the string
     test_examples = [
@@ -124,9 +142,18 @@ if __name__ == '__main__':
         'førstegenerationsindvandrer',
         'arbejdsmarkedsuddannelse',
         'halvfjerdsårsfødselsdag',
+        'rosenbusk',
+        'tornebusk',
+        'tjørnebusk',
+        'kapersbusk',
+        'ribsbusk',
+        'hestesadel',
+        'fiskeørn',
     ]
     for example in test_examples:
-        example = NormalizedString(example)
+        norm_example = NormalizedString(example)
         print(example)
-        print(list(map(str, compound_noun.compound_split(0, example))))
+        print(list(map(str, interfix_pretok.compound_split(0, norm_example))))
+        print([electra_tok.decode(i) for i in electra_tok.encode(example)])
+        print([dabert_tok.decode(i) for i in dabert_tok.encode(example)])
         print()
