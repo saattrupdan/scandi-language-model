@@ -4,7 +4,11 @@ from transformers import (RobertaConfig, RobertaForMaskedLM,
                           DataCollatorForLanguageModeling, Trainer,
                           TrainingArguments, PreTrainedTokenizerFast)
 from datasets import Dataset
+import datasets
 from functools import partial
+
+
+datasets.set_caching_enabled(False)
 
 
 def main():

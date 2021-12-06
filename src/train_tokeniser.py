@@ -3,6 +3,10 @@
 from tokenizers import (normalizers, pre_tokenizers, tokenizers,
                         processors, trainers, models, decoders, AddedToken)
 from datasets import Dataset
+import datasets
+
+
+datasets.set_caching_enabled(False)
 
 
 def main():

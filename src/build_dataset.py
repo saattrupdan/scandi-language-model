@@ -1,6 +1,10 @@
 '''Combine all the datasets as a HuggingFace dataset'''
 
 from datasets import Dataset, concatenate_datasets, interleave_datasets
+import datasets
+
+
+datasets.set_caching_enabled(False)
 
 
 def main():
