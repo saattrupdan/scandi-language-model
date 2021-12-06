@@ -62,7 +62,8 @@ def main():
 
     # Initialise the trainer
     trainer = trainers.UnigramTrainer(vocab_size=100_000,
-                                      special_tokens=special_tokens)
+                                      special_tokens=special_tokens,
+                                      unk_token='<unk>')
 
     # Train the tokeniser
     tokeniser.train_from_iterator(iterator=dataset['text'], trainer=trainer)
