@@ -9,7 +9,7 @@ def main():
     '''Main function'''
 
     # Load the dataset
-    dataset = Dataset.load_from_disk('data/dataset')
+    dataset = Dataset.load_from_disk('data/da_dataset')
 
     # Load the dictionary
     # csv_path = 'data/retskrivningsordbog-basic.csv'
@@ -69,13 +69,13 @@ def main():
     tokeniser.train_from_iterator(iterator=dataset['text'], trainer=trainer)
 
     # Save the tokeniser
-    tokeniser.save('wiki-da-sv-no.json')
+    tokeniser.save('wiki-da.json')
 
 
 if __name__ == '__main__':
-    main()
+    #main()
 
-    tokeniser = tokenizers.Tokenizer.from_file('wiki-da-sv-no.json')
+    tokeniser = tokenizers.Tokenizer.from_file('wiki-da.json')
 
     # Load other tokenisers
     from transformers import AutoTokenizer

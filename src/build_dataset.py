@@ -25,11 +25,11 @@ def main():
     fo_dataset = Dataset.from_text(fo_wiki_path)
 
     # Concatenate and shuffle the datasets
-    all_datasets = [da_dataset, sv_dataset, no_dataset]#, is_dataset, fo_dataset]
-    dataset = interleave_datasets(all_datasets).shuffle()
+    # all_datasets = [da_dataset, sv_dataset, no_dataset]#, is_dataset, fo_dataset]
+    # dataset = interleave_datasets(all_datasets).shuffle()
 
     # Save the dataset
-    dataset.save_to_disk('data/dataset')
+    da_dataset.save_to_disk('data/da_dataset')
 
 
 if __name__ == '__main__':
