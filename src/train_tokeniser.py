@@ -73,7 +73,7 @@ def main():
 
 
 if __name__ == '__main__':
-    #main()
+    main()
 
     tokeniser = tokenizers.Tokenizer.from_file('wiki-da.json')
 
