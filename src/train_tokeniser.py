@@ -61,7 +61,7 @@ def main():
     tokeniser.decoder = decoder
 
     # Initialise the trainer
-    trainer = trainers.UnigramTrainer(vocab_size=100_000,
+    trainer = trainers.UnigramTrainer(vocab_size=32_000,
                                       special_tokens=special_tokens,
                                       unk_token='<unk>')
 
