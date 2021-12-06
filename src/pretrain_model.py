@@ -10,7 +10,7 @@ def main():
     '''Main function'''
 
     # Load pretrained tokenizer
-    tokeniser = PreTrainedTokenizerFast(tokenizer_file='wiki-da-sv-no.json',
+    tokeniser = PreTrainedTokenizerFast(tokenizer_file='wiki-da.json',
                                         bos_token='<s>',
                                         cls_token='<s>',
                                         eos_token='</s>',
@@ -45,8 +45,7 @@ def main():
     def tokenise(examples: dict) -> dict:
         return tokeniser(examples['text'],
                          truncation=True,
-                         padding=True,
-                         max_length=512)
+                         padding=True)
     train_dataset = train_dataset.map(tokenise, batched=True)
     val_dataset = val_dataset.map(tokenise, batched=True)
     test_dataset = test_dataset.map(tokenise, batched=True)
@@ -57,14 +56,17 @@ def main():
                                                     mlm_probability=0.15)
 
     # Set up training arguments
-    training_args = TrainingArguments(output_dir='roberta-base-wiki-da-sv-no',
+    training_args = TrainingArguments(output_dir='roberta-base-wiki-da',
                                       overwrite_output_dir=True,
-                                      num_train_epochs=3,
+                                      max_steps=1_000_000,
                                       per_device_train_batch_size=8,
                                       per_device_eval_batch_size=8,
                                       gradient_accumulation_steps=32,
-                                      save_steps=100,
-                                      save_total_limit=3)
+                                      save_total_limit=1,
+                                      learning_rate=1e-4,
+                                      warmup_steps=10_000,
+                                      weight_decay=0.01)
+
 
     # Initialise trainer
     trainer = Trainer(model=model,
