@@ -31,13 +31,13 @@ def main(config: dict):
     tokeniser.model_max_length = 512
 
     # Initialise config
-    config = RobertaConfig(pad_token_id=4,
-                           bos_token_id=0,
-                           eos_token_id=1,
-                           vocab_size=len(tokeniser))
+    model_config = RobertaConfig(pad_token_id=4,
+                                 bos_token_id=0,
+                                 eos_token_id=1,
+                                 vocab_size=len(tokeniser))
 
     # Initialise model
-    model = RobertaForMaskedLM(config=config)
+    model = RobertaForMaskedLM(config=model_config)
 
     # Load dataset
     dataset = Dataset.load_from_disk('data/da_dataset')
