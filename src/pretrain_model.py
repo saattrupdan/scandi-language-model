@@ -6,6 +6,7 @@ from transformers import (RobertaConfig, RobertaForMaskedLM,
 from datasets import Dataset
 import datasets
 from functools import partial
+import torch
 
 
 datasets.set_caching_enabled(False)
@@ -66,13 +67,18 @@ def main():
                                                     mlm=True,
                                                     mlm_probability=0.15)
 
+    # Count the number of GPUs available, and set the gradient accumulation
+    # accordingly, to ensure that the effective batch size is 256
+    device_count = torch.cuda.device_count()
+    acc_steps = 256 // (8 * device_count)
+
     # Set up training arguments
     training_args = TrainingArguments(output_dir='roberta-base-wiki-da',
                                       overwrite_output_dir=True,
                                       max_steps=900_000,
                                       per_device_train_batch_size=8,
                                       per_device_eval_batch_size=8,
-                                      gradient_accumulation_steps=32,
+                                      gradient_accumulation_steps=acc_steps,
                                       save_total_limit=1,
                                       learning_rate=1e-4,
                                       warmup_steps=10_000,
