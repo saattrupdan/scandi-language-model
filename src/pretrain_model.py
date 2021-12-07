@@ -180,4 +180,4 @@ if __name__ == '__main__':
                   batch_size_128=32,
                   batch_size_512=8,
                   random_seed=4242)
-    main()
+    main(config=config)
