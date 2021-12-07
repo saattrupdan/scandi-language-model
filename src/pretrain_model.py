@@ -3,10 +3,11 @@
 from transformers import (RobertaConfig, RobertaForMaskedLM,
                           DataCollatorForLanguageModeling, Trainer,
                           TrainingArguments, PreTrainedTokenizerFast)
-from datasets import Dataset
+from datasets import Dataset, load_metric
 import datasets
 from functools import partial
 import torch
+from typing import Dict
 
 
 datasets.set_caching_enabled(False)
@@ -90,6 +91,7 @@ def main():
     trainer = Trainer(model=model,
                       args=training_args,
                       data_collator=data_collator,
+                      compute_metrics=compute_metrics,
                       train_dataset=train_dataset_128.shuffle(),
                       eval_dataset=val_dataset_128)
 
@@ -110,6 +112,36 @@ def main():
 
     # Save model
     trainer.save_model()
+
+
+def compute_metrics(predictions_and_labels: tuple) -> Dict[str, float]:
+    '''Compute the metrics for MLM evaluation.
+
+    Args:
+        predictions_and_labels (pair of arrays):
+            The first array contains the probability predictions and the
+            second array contains the true labels.
+
+    Returns:
+        dict:
+            A dictionary with the names of the metrics as keys and the
+            metric values as values.
+    '''
+    # Get predictions and labels
+    predictions, labels = predictions_and_labels
+
+    # Compute the accuracy
+    rounded_predictions = predictions.argmax(axis=-1)
+    acc_metric = load_metric('accuracy')
+    acc_results = acc_metric.compute(predictions=rounded_predictions,
+                                     references=labels)
+
+    # Compute the perplexity
+    bce_loss = torch.nn.BCEWithLogitsLoss()
+    bce = bce_loss(predictions, labels)
+    perplexity = torch.exp(bce)
+
+    return dict(accuracy=acc_results['accuracy'], perplexity=perplexity)
 
 
 if __name__ == '__main__':
