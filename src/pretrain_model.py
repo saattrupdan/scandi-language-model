@@ -72,7 +72,7 @@ def main():
     # Count the number of GPUs available, and set the gradient accumulation
     # accordingly, to ensure that the effective batch size is 256
     device_count = torch.cuda.device_count()
-    batch_size = 32
+    batch_size = 64
     acc_steps = 300 // (batch_size * device_count)
 
     # Set up training arguments
@@ -105,13 +105,20 @@ def main():
                       eval_dataset=val_dataset_128,
                       callbacks=[early_stopping])
 
+    # Temp
+    trainer.train_dataset = train_dataset_128.shuffle()
+    trainer.eval_dataset = val_dataset_128
+    trainer.args.max_steps = 900_000
+    trainer.args.batch_size = 64
+
     # Train model on 128-length sequences
     trainer.train()
 
     # Set up trainer for 512-length sequence
     trainer.train_dataset = train_dataset_512.shuffle()
     trainer.eval_dataset = val_dataset_512
-    trainer.max_steps = 100_000
+    trainer.args.max_steps = 100_000
+    trainer.args.batch_size = 8
 
     # Train model on 512-length sequences
     trainer.train(resume_from_checkpoint=True)
