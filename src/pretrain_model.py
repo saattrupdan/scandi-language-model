@@ -72,7 +72,7 @@ def main():
     # accordingly, to ensure that the effective batch size is 256
     device_count = torch.cuda.device_count()
     batch_size = 32
-    acc_steps = 256 // (batch_size * device_count)
+    acc_steps = 300 // (batch_size * device_count)
 
     # Set up training arguments
     training_args = TrainingArguments(output_dir='roberta-base-wiki-da',
