@@ -98,6 +98,7 @@ def main():
     trainer.train(resume_from_checkpoint=True)
 
     # Evaluate model
+    trainer.evaluate(test_dataset_128)
     trainer.evaluate(test_dataset_512)
 
     # Save model
