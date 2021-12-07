@@ -70,13 +70,14 @@ def main():
     # Count the number of GPUs available, and set the gradient accumulation
     # accordingly, to ensure that the effective batch size is 256
     device_count = torch.cuda.device_count()
-    acc_steps = 256 // (8 * device_count)
+    batch_size = 8 * device_count
+    acc_steps = 256 // batch_size
 
     # Set up training arguments
     training_args = TrainingArguments(output_dir='roberta-base-wiki-da',
                                       overwrite_output_dir=True,
                                       max_steps=900_000,
-                                      per_device_train_batch_size=8,
+                                      per_device_train_batch_size=batch_size,
                                       per_device_eval_batch_size=8,
                                       gradient_accumulation_steps=acc_steps,
                                       save_total_limit=1,
