@@ -179,5 +179,6 @@ if __name__ == '__main__':
                   num_steps_512=100_000,
                   batch_size_128=32,
                   batch_size_512=8,
+                  patience=10,
                   random_seed=4242)
     main(config=config)
