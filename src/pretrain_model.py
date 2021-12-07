@@ -49,7 +49,7 @@ def main():
     val_dataset = splits['train']
     test_dataset = splits['test']
 
-    # Tokenise the datasets
+    # Tokenise the 128-length dataset
     def tokenise(examples: dict, max_length: int) -> dict:
         return tokeniser(examples['text'],
                          truncation=True,
@@ -58,11 +58,6 @@ def main():
     tokenise_128 = partial(tokenise, max_length=128)
     train_dataset_128 = train_dataset.map(tokenise_128, batched=True)
     val_dataset_128 = val_dataset.map(tokenise_128, batched=True)
-    test_dataset_128 = test_dataset.map(tokenise_128, batched=True)
-    tokenise_512 = partial(tokenise, max_length=512)
-    train_dataset_512 = train_dataset.map(tokenise_512, batched=True)
-    val_dataset_512 = val_dataset.map(tokenise_512, batched=True)
-    test_dataset_512 = test_dataset.map(tokenise_512, batched=True)
 
     # Set up data collator
     data_collator = DataCollatorForLanguageModeling(tokenizer=tokeniser,
@@ -110,10 +105,18 @@ def main():
     trainer.train_dataset = train_dataset_128.shuffle()
     trainer.eval_dataset = val_dataset_128
     trainer.args.max_steps = 900_000
-    trainer.args.batch_size = 64
+    trainer.args.batch_size = 32
 
     # Train model on 128-length sequences
     trainer.train()
+
+    # Tokenise the 512-length dataset and remove the 128-length datasets
+    del train_dataset_128
+    del val_dataset_128
+    tokenise_512 = partial(tokenise, max_length=512)
+    train_dataset_512 = train_dataset.map(tokenise_512, batched=True)
+    val_dataset_512 = val_dataset.map(tokenise_512, batched=True)
+    test_dataset_512 = test_dataset.map(tokenise_512, batched=True)
 
     # Set up trainer for 512-length sequence
     trainer.train_dataset = train_dataset_512.shuffle()
@@ -125,7 +128,6 @@ def main():
     trainer.train(resume_from_checkpoint=True)
 
     # Evaluate model
-    trainer.evaluate(test_dataset_128)
     trainer.evaluate(test_dataset_512)
 
     # Save model
