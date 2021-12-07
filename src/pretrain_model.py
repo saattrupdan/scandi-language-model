@@ -104,14 +104,6 @@ def main(config: dict):
                       eval_dataset=val_dataset_128,
                       callbacks=[early_stopping])
 
-    # Temp
-    trainer.train_dataset = train_dataset_128.shuffle()
-    trainer.eval_dataset = val_dataset_128
-    trainer.args.max_steps = config['max_steps_128']
-    trainer.args.batch_size = config['batch_size_128']
-    acc_steps = 300 // (config['batch_size_128'] * device_count)
-    trainer.args.gradient_accumulation_steps = acc_steps
-
     # Train model on 128-length sequences
     trainer.train()
 
