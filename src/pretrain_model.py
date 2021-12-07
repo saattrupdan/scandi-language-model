@@ -14,7 +14,7 @@ from typing import Dict
 datasets.set_caching_enabled(False)
 
 
-def main():
+def main(config: dict):
     '''Main function'''
 
     # Load pretrained tokenizer
@@ -43,9 +43,11 @@ def main():
     dataset = Dataset.load_from_disk('data/da_dataset')
 
     # Split dataset into train and validation
-    splits = dataset.train_test_split(train_size=0.9, seed=4242)
+    splits = dataset.train_test_split(train_size=0.9,
+                                      seed=config['random_seed'])
     train_dataset = splits['train']
-    splits = splits['test'].train_test_split(train_size=0.5, seed=4242)
+    splits = splits['test'].train_test_split(train_size=0.5,
+                                             seed=config['random_seed'])
     val_dataset = splits['train']
     test_dataset = splits['test']
 
@@ -67,7 +69,7 @@ def main():
     # Count the number of GPUs available, and set the gradient accumulation
     # accordingly, to ensure that the effective batch size is 256
     device_count = torch.cuda.device_count()
-    batch_size = 64
+    batch_size = config['batch_size_128']
     acc_steps = 300 // (batch_size * device_count)
 
     # Set up training arguments
@@ -79,20 +81,21 @@ def main():
                                       eval_steps=500,
                                       logging_steps=500,
                                       save_steps=500,
-                                      max_steps=900_000,
+                                      max_steps=config['num_steps_128'],
                                       per_device_train_batch_size=batch_size,
                                       per_device_eval_batch_size=batch_size,
                                       gradient_accumulation_steps=acc_steps,
                                       metric_for_best_model='accuracy',
                                       save_total_limit=1,
-                                      learning_rate=1e-4,
-                                      warmup_steps=10_000,
-                                      weight_decay=0.01,
+                                      learning_rate=config['lr'],
+                                      warmup_steps=config['warmup_steps'],
+                                      weight_decay=config['weight_decay'],
                                       report_to='all',
                                       load_best_model_at_end=True)
 
     # Initialise trainer
-    early_stopping = EarlyStoppingCallback(early_stopping_patience=10)
+    params = dict(early_stopping_patience=config['patience'])
+    early_stopping = EarlyStoppingCallback(**params)
     trainer = Trainer(model=model,
                       args=training_args,
                       data_collator=data_collator,
@@ -104,8 +107,10 @@ def main():
     # Temp
     trainer.train_dataset = train_dataset_128.shuffle()
     trainer.eval_dataset = val_dataset_128
-    trainer.args.max_steps = 900_000
-    trainer.args.batch_size = 32
+    trainer.args.max_steps = config['max_steps_128']
+    trainer.args.batch_size = config['batch_size_128']
+    acc_steps = 300 // (config['batch_size_128'] * device_count)
+    trainer.args.gradient_accumulation_steps = acc_steps
 
     # Train model on 128-length sequences
     trainer.train()
@@ -121,8 +126,10 @@ def main():
     # Set up trainer for 512-length sequence
     trainer.train_dataset = train_dataset_512.shuffle()
     trainer.eval_dataset = val_dataset_512
-    trainer.args.max_steps = 100_000
-    trainer.args.batch_size = 8
+    trainer.args.max_steps = config['max_steps_512']
+    trainer.args.batch_size = config['batch_size_512']
+    acc_steps = 300 // (config['batch_size_512'] * device_count)
+    trainer.args.gradient_accumulation_steps = acc_steps
 
     # Train model on 512-length sequences
     trainer.train(resume_from_checkpoint=True)
@@ -165,4 +172,12 @@ def compute_metrics(predictions_and_labels: tuple) -> Dict[str, float]:
 
 
 if __name__ == '__main__':
+    config = dict(lr=1e-4,
+                  weight_decay=0.01,
+                  warmup_steps=10_000,
+                  num_steps_128=900_000,
+                  num_steps_512=100_000,
+                  batch_size_128=32,
+                  batch_size_512=8,
+                  random_seed=4242)
     main()
