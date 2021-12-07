@@ -2,7 +2,8 @@
 
 from transformers import (RobertaConfig, RobertaForMaskedLM,
                           DataCollatorForLanguageModeling, Trainer,
-                          TrainingArguments, PreTrainedTokenizerFast)
+                          TrainingArguments, PreTrainedTokenizerFast,
+                          EarlyStoppingCallback)
 from datasets import Dataset, load_metric
 import datasets
 from functools import partial
@@ -77,10 +78,17 @@ def main():
     # Set up training arguments
     training_args = TrainingArguments(output_dir='roberta-base-wiki-da',
                                       overwrite_output_dir=True,
+                                      evaluation_strategy='steps',
+                                      logging_strategy='steps',
+                                      save_strategy='steps',
+                                      eval_steps=500,
+                                      logging_steps=500,
+                                      save_steps=500,
                                       max_steps=900_000,
                                       per_device_train_batch_size=batch_size,
                                       per_device_eval_batch_size=batch_size,
                                       gradient_accumulation_steps=acc_steps,
+                                      metric_for_best_model='accuracy',
                                       save_total_limit=1,
                                       learning_rate=1e-4,
                                       warmup_steps=10_000,
@@ -88,12 +96,14 @@ def main():
                                       report_to='all')
 
     # Initialise trainer
+    early_stopping = EarlyStoppingCallback(early_stopping_patience=10)
     trainer = Trainer(model=model,
                       args=training_args,
                       data_collator=data_collator,
                       compute_metrics=compute_metrics,
                       train_dataset=train_dataset_128.shuffle(),
-                      eval_dataset=val_dataset_128)
+                      eval_dataset=val_dataset_128,
+                      callbacks=[early_stopping])
 
     # Train model on 128-length sequences
     trainer.train()
