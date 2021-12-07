@@ -93,7 +93,8 @@ def main():
                                       learning_rate=1e-4,
                                       warmup_steps=10_000,
                                       weight_decay=0.01,
-                                      report_to='all')
+                                      report_to='all',
+                                      load_best_model_at_end=True)
 
     # Initialise trainer
     early_stopping = EarlyStoppingCallback(early_stopping_patience=10)
