@@ -11,6 +11,10 @@ from typing import Dict
 import os
 import warnings
 import wandb
+from dotenv import load_dotenv
+
+
+load_dotenv()
 
 
 wandb.init(project="roberta-base-wiki-da", entity="saattrupdan")
