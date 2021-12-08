@@ -47,7 +47,7 @@ def main(config: dict):
     dataset = Dataset.load_from_disk('data/da_dataset')
 
     # Split dataset into train and validation
-    splits = dataset.train_test_split(train_size=0.9,
+    splits = dataset.train_test_split(train_size=0.99,
                                       seed=config['random_seed'])
     train_dataset = splits['train']
     splits = splits['test'].train_test_split(train_size=0.5,
