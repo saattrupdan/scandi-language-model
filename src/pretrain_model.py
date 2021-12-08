@@ -91,7 +91,8 @@ def main(config: dict):
                                       warmup_steps=config['warmup_steps'],
                                       weight_decay=config['weight_decay'],
                                       report_to='all',
-                                      load_best_model_at_end=True)
+                                      load_best_model_at_end=True,
+                                      push_to_hub=True)
 
     # Initialise trainer
     params = dict(early_stopping_patience=config['patience'])
@@ -131,6 +132,9 @@ def main(config: dict):
 
     # Save model
     trainer.save_model()
+
+    # Push to Hub
+    trainer.push_to_hub()
 
 
 def compute_metrics(predictions_and_labels: tuple) -> Dict[str, float]:
