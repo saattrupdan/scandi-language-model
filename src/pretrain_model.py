@@ -9,6 +9,7 @@ import datasets
 from functools import partial
 import torch
 from typing import Dict
+import os
 
 
 datasets.set_caching_enabled(False)
@@ -16,6 +17,9 @@ datasets.set_caching_enabled(False)
 
 def main(config: dict):
     '''Main function'''
+
+    # Disable tokenizer parallelization
+    os.environ['TOKENIZERS_PARALLELISM'] = 'false'
 
     # Load pretrained tokenizer
     tokeniser = PreTrainedTokenizerFast(tokenizer_file='wiki-da.json',
