@@ -87,7 +87,7 @@ def main(config: dict):
                                       save_steps=10,
                                       max_steps=config['max_steps_128'],
                                       per_device_train_batch_size=batch_size,
-                                      per_device_eval_batch_size=1,
+                                      per_device_eval_batch_size=batch_size,
                                       eval_accumulation_steps=1,
                                       gradient_accumulation_steps=acc_steps,
                                       metric_for_best_model='accuracy',
