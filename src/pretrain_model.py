@@ -88,7 +88,6 @@ def main(config: dict):
                                       warmup_steps=config['warmup_steps'],
                                       weight_decay=config['weight_decay'],
                                       report_to='all',
-                                      load_best_model_at_end=True,
                                       push_to_hub=True,
                                       per_device_eval_batch_size=batch_size,
                                       eval_accumulation_steps=1)
