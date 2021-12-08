@@ -78,12 +78,12 @@ def main(config: dict):
                                       evaluation_strategy='steps',
                                       logging_strategy='steps',
                                       save_strategy='steps',
-                                      eval_steps=500,
-                                      logging_steps=500,
-                                      save_steps=500,
+                                      eval_steps=1_000,
+                                      logging_steps=1_000,
+                                      save_steps=1_000,
                                       max_steps=config['max_steps_128'],
                                       per_device_train_batch_size=batch_size,
-                                      per_device_eval_batch_size=batch_size,
+                                      per_device_eval_batch_size=4,
                                       gradient_accumulation_steps=acc_steps,
                                       metric_for_best_model='accuracy',
                                       save_total_limit=1,
@@ -119,7 +119,7 @@ def main(config: dict):
     trainer.train_dataset = train_dataset_512.shuffle()
     trainer.eval_dataset = val_dataset_512
     trainer.args.max_steps = config['max_steps_512']
-    trainer.args.batch_size = config['batch_size_512']
+    trainer.args.per_device_train_batch_size = config['batch_size_512']
     acc_steps = 300 // (config['batch_size_512'] * device_count)
     trainer.args.gradient_accumulation_steps = acc_steps
 
@@ -169,8 +169,8 @@ if __name__ == '__main__':
                   warmup_steps=10_000,
                   max_steps_128=900_000,
                   max_steps_512=100_000,
-                  batch_size_128=32,
-                  batch_size_512=8,
+                  batch_size_128=16,
+                  batch_size_512=4,
                   patience=10,
                   random_seed=4242)
     main(config=config)
