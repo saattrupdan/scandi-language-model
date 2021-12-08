@@ -2,24 +2,32 @@
 
 from transformers import (RobertaConfig, RobertaForMaskedLM,
                           DataCollatorForLanguageModeling, Trainer,
-                          TrainingArguments, PreTrainedTokenizerFast,
-                          EarlyStoppingCallback)
+                          TrainingArguments, PreTrainedTokenizerFast)
 from datasets import Dataset, load_metric
 import datasets
 from functools import partial
 import torch
 from typing import Dict
 import os
-
-
-datasets.set_caching_enabled(False)
+import warnings
 
 
 def main(config: dict):
     '''Main function'''
 
+    # Disable datasets caching
+    datasets.set_caching_enabled(False)
+
     # Disable tokenizer parallelization
     os.environ['TOKENIZERS_PARALLELISM'] = 'false'
+
+    # Ignore warning
+    warnings.filterwarnings('ignore',
+                        module='torch.nn.parallel*',
+                        message=('Was asked to gather along dimension 0, '
+                                 'but all input tensors were scalars; '
+                                 'will instead unsqueeze and return '
+                                 'a vector.'))
 
     # Load pretrained tokenizer
     tokeniser = PreTrainedTokenizerFast(tokenizer_file='wiki-da.json',
@@ -82,7 +90,6 @@ def main(config: dict):
                                       max_steps=config['max_steps_128'],
                                       per_device_train_batch_size=batch_size,
                                       gradient_accumulation_steps=acc_steps,
-                                      metric_for_best_model='accuracy',
                                       save_total_limit=1,
                                       learning_rate=config['lr'],
                                       warmup_steps=config['warmup_steps'],
