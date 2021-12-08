@@ -50,9 +50,6 @@ def main(config: dict):
     splits = dataset.train_test_split(train_size=0.99,
                                       seed=config['random_seed'])
     train_dataset = splits['train']
-    splits = splits['test'].train_test_split(train_size=0.1,
-                                             seed=config['random_seed'])
-    val_dataset = splits['train']
     test_dataset = splits['test']
 
     # Tokenise the 128-length dataset
@@ -79,16 +76,12 @@ def main(config: dict):
     # Set up training arguments
     training_args = TrainingArguments(output_dir='roberta-base-wiki-da',
                                       overwrite_output_dir=True,
-                                      evaluation_strategy='steps',
                                       logging_strategy='steps',
                                       save_strategy='steps',
-                                      eval_steps=10,
-                                      logging_steps=10,
-                                      save_steps=10,
+                                      logging_steps=100,
+                                      save_steps=100,
                                       max_steps=config['max_steps_128'],
                                       per_device_train_batch_size=batch_size,
-                                      per_device_eval_batch_size=batch_size,
-                                      eval_accumulation_steps=2,
                                       gradient_accumulation_steps=acc_steps,
                                       metric_for_best_model='accuracy',
                                       save_total_limit=1,
@@ -97,18 +90,16 @@ def main(config: dict):
                                       weight_decay=config['weight_decay'],
                                       report_to='all',
                                       load_best_model_at_end=True,
-                                      push_to_hub=True)
+                                      push_to_hub=True,
+                                      per_device_eval_batch_size=batch_size,
+                                      eval_accumulation_steps=1)
 
     # Initialise trainer
-    params = dict(early_stopping_patience=config['patience'])
-    early_stopping = EarlyStoppingCallback(**params)
     trainer = Trainer(model=model,
                       args=training_args,
                       data_collator=data_collator,
                       compute_metrics=compute_metrics,
-                      train_dataset=train_dataset_128.shuffle(),
-                      eval_dataset=val_dataset_128,
-                      callbacks=[early_stopping])
+                      train_dataset=train_dataset_128.shuffle())
 
     # Train model on 128-length sequences
     trainer.train()
@@ -118,12 +109,10 @@ def main(config: dict):
     del val_dataset_128
     tokenise_512 = partial(tokenise, max_length=512)
     train_dataset_512 = train_dataset.map(tokenise_512, batched=True)
-    val_dataset_512 = val_dataset.map(tokenise_512, batched=True)
     test_dataset_512 = test_dataset.map(tokenise_512, batched=True)
 
     # Set up trainer for 512-length sequence
     trainer.train_dataset = train_dataset_512.shuffle()
-    trainer.eval_dataset = val_dataset_512
     trainer.args.max_steps = config['max_steps_512']
     trainer.args.per_device_train_batch_size = config['batch_size_512']
     acc_steps = 300 // (config['batch_size_512'] * device_count)
