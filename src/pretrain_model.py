@@ -50,7 +50,7 @@ def main(config: dict):
     splits = dataset.train_test_split(train_size=0.99,
                                       seed=config['random_seed'])
     train_dataset = splits['train']
-    splits = splits['test'].train_test_split(train_size=0.5,
+    splits = splits['test'].train_test_split(train_size=0.1,
                                              seed=config['random_seed'])
     val_dataset = splits['train']
     test_dataset = splits['test']
@@ -88,7 +88,7 @@ def main(config: dict):
                                       max_steps=config['max_steps_128'],
                                       per_device_train_batch_size=batch_size,
                                       per_device_eval_batch_size=batch_size,
-                                      eval_accumulation_steps=1,
+                                      eval_accumulation_steps=2,
                                       gradient_accumulation_steps=acc_steps,
                                       metric_for_best_model='accuracy',
                                       save_total_limit=1,
