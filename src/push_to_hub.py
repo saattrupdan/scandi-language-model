@@ -7,8 +7,14 @@ import sys
 def main():
     '''Push the model to the HF Hub'''
     if len(sys.argv) == 3:
+
+        # Fetch arguments
         model_id = sys.argv[1]
         tokenizer_id = sys.argv[2]
+
+        # Ensure that `tokenizer_id` has file suffix
+        if not tokenizer_id.endswith('.json'):
+            tokenizer_id += '.json'
 
         # Load pretrained tokenizer and push it to the hub
         tokeniser = PreTrainedTokenizerFast(tokenizer_file=tokenizer_id,
