@@ -60,7 +60,6 @@ def main(config: dict):
                          max_length=max_length)
     tokenise_128 = partial(tokenise, max_length=128)
     train_dataset_128 = train_dataset.map(tokenise_128, batched=True)
-    val_dataset_128 = val_dataset.map(tokenise_128, batched=True)
 
     # Set up data collator
     data_collator = DataCollatorForLanguageModeling(tokenizer=tokeniser,
@@ -106,7 +105,6 @@ def main(config: dict):
 
     # Tokenise the 512-length dataset and remove the 128-length datasets
     del train_dataset_128
-    del val_dataset_128
     tokenise_512 = partial(tokenise, max_length=512)
     train_dataset_512 = train_dataset.map(tokenise_512, batched=True)
     test_dataset_512 = test_dataset.map(tokenise_512, batched=True)
