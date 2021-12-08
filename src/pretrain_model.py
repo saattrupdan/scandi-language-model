@@ -100,6 +100,8 @@ def main(config: dict):
                                       weight_decay=config['weight_decay'],
                                       report_to='all',
                                       push_to_hub=True,
+                                      push_to_hub_token=('hf_ilkDxzSyuJfgaelc'
+                                                         'eOIBspsrJwuYUsKzcN'),
                                       per_device_eval_batch_size=batch_size,
                                       eval_accumulation_steps=1)
 
