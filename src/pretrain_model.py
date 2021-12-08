@@ -10,6 +10,10 @@ import torch
 from typing import Dict
 import os
 import warnings
+import wandb
+
+
+wandb.init(project="roberta-base-wiki-da", entity="saattrupdan")
 
 
 def main(config: dict):
@@ -94,7 +98,7 @@ def main(config: dict):
                                       learning_rate=config['lr'],
                                       warmup_steps=config['warmup_steps'],
                                       weight_decay=config['weight_decay'],
-                                      report_to='all',
+                                      report_to='wandb',
                                       push_to_hub=True,
                                       per_device_eval_batch_size=batch_size,
                                       eval_accumulation_steps=1)
