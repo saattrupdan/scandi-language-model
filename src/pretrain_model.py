@@ -98,7 +98,7 @@ def main(config: dict):
                                       learning_rate=config['lr'],
                                       warmup_steps=config['warmup_steps'],
                                       weight_decay=config['weight_decay'],
-                                      report_to='wandb',
+                                      report_to='all',
                                       push_to_hub=True,
                                       per_device_eval_batch_size=batch_size,
                                       eval_accumulation_steps=1)
