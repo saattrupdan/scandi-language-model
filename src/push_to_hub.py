@@ -74,9 +74,9 @@ def main():
 
             # Get loss
             with torch.no_grad():
-                logits = model(**samples).logits
-                loss = F.binary_cross_entropy_with_logits(logits,
-                                                          samples['labels'])
+                logits = model(**samples).logits[samples['attention_mask'] > 0]
+                labels = samples['labels'][samples['attention_mask'] > 0]
+                loss = F.binary_cross_entropy_with_logits(logits, labels)
                 test_loss += loss
 
         # Compute the average loss
