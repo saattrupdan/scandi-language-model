@@ -36,6 +36,7 @@ def main():
         # Load pretrained model and push it to the hub
         model = AutoModelForPreTraining.from_pretrained(model_id)
         model.eval()
+        model.cpu()
 
         # Load test dataset
         dataset = Dataset.load_from_disk('data/da_dataset')
@@ -56,12 +57,13 @@ def main():
                                                         mlm=True,
                                                         mlm_probability=0.15)
 
+        breakpoint()
+
         # Set up training arguments
         training_args = TrainingArguments(
             output_dir='roberta-base-wiki-da',
             per_device_eval_batch_size=4,
-            eval_accumulation_steps=1,
-            report_to='none'
+            eval_accumulation_steps=1
         )
 
         # Initialise trainer
