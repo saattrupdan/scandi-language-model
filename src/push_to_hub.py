@@ -51,7 +51,7 @@ def main():
         def preprocess(examples: dict) -> dict:
             examples = tokeniser(examples['text'],
                                  truncation=True,
-                                 padding=True,
+                                 padding='max_length',
                                  max_length=512)
             examples = data_collator((examples,), return_tensors='pt')
             return examples
@@ -68,7 +68,6 @@ def main():
             samples.pop('text')
 
             # Convert samples to tensors
-            breakpoint()
             samples = {key: torch.tensor(val) for key, val in samples.items()}
 
             # Get loss
