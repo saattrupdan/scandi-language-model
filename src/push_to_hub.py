@@ -72,7 +72,9 @@ def main():
 
             # Get loss
             with torch.no_grad():
-                test_loss += model(**samples).loss
+                breakpoint()
+                loss, _ = model(**samples).loss
+                test_loss += loss
 
         # Compute the average loss
         test_loss /= len(test_dataset)
