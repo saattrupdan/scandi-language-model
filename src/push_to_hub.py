@@ -31,7 +31,12 @@ def main():
                                             pad_token='<pad>')
         tokeniser.model_max_length = 512
 
-        # Load pretrained model and push it to the hub
+        # Set up data collator
+        data_collator = DataCollatorForLanguageModeling(tokenizer=tokeniser,
+                                                        mlm=True,
+                                                        mlm_probability=0.15)
+
+        # Load pretrained model
         model = AutoModelForPreTraining.from_pretrained(model_id)
         model.eval()
         model.cpu()
@@ -42,19 +47,17 @@ def main():
                                           seed=4242)
         test_dataset = splits['test']
 
-        # Tokenise the dataset
-        def tokenise(examples: dict) -> dict:
-            return tokeniser(examples['text'],
-                             truncation=True,
-                             padding=True,
-                             max_length=512)
-        test_dataset = test_dataset.map(tokenise, batched=True)
+        # Preprocess the test dataset
+        def preprocess(examples: dict) -> dict:
+            examples = tokeniser(examples['text'],
+                                 truncation=True,
+                                 padding=True,
+                                 max_length=512)
+            examples = data_collator(examples)
+            return examples
+        test_dataset = test_dataset.map(preprocess)
 
-        # Set up data collator
-        data_collator = DataCollatorForLanguageModeling(tokenizer=tokeniser,
-                                                        mlm=True,
-                                                        mlm_probability=0.15)
-
+        # Evaluate the model on the test dataset
         test_loss = 0
         for i in trange(0, len(test_dataset), 8):
 
@@ -63,9 +66,6 @@ def main():
 
             # Remove the 'text' key from the sample
             samples.pop('text')
-
-            # Convert the lists in the sample to pytorch tensors
-            samples = data_collator(samples)
 
             # Get loss
             with torch.no_grad():
