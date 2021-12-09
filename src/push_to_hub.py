@@ -56,20 +56,20 @@ def main():
                                                         mlm_probability=0.15)
 
         test_loss = 0
-        for i in trange(len(test_dataset)):
+        for i in trange(0, len(test_dataset), 8):
 
             # Get test sample
-            sample = test_dataset[i]
+            samples = test_dataset[i:i+8]
 
             # Remove the 'text' key from the sample
-            sample.pop('text')
+            samples.pop('text')
 
             # Convert the lists in the sample to pytorch tensors
-            sample = data_collator((sample,))
+            samples = data_collator((samples,))
 
             # Get loss
             with torch.no_grad():
-                test_loss += model(**sample).loss
+                test_loss += model(**samples).loss
 
         # Compute the average loss
         test_loss /= len(test_dataset)
