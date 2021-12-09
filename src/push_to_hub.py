@@ -53,7 +53,7 @@ def main():
                                  truncation=True,
                                  padding=True,
                                  max_length=512)
-            examples = data_collator((examples,))
+            examples = data_collator((examples,), return_tensors='pt')
             return examples
         test_dataset = test_dataset.map(preprocess)
 
