@@ -55,7 +55,9 @@ def main():
                                  max_length=512)
             examples = data_collator((examples,), return_tensors='pt')
             return examples
+        breakpoint()
         test_dataset = test_dataset.map(preprocess)
+        breakpoint()
 
         # Evaluate the model on the test dataset
         test_loss = 0
