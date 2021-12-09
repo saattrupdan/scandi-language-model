@@ -19,7 +19,7 @@ def main(batch_size: int):
         tokenizer_id = sys.argv[2]
 
         # Set up metric
-        metric = tm.Accuracy()
+        metric = tm.Accuracy().cuda()
 
         # Ensure that `tokenizer_id` has file suffix
         if not tokenizer_id.endswith('.json'):
