@@ -74,8 +74,10 @@ def main():
 
             # Get loss
             with torch.no_grad():
-                logits = model(**samples).logits[samples['attention_mask'] > 0]
-                labels = samples['labels'][samples['attention_mask'] > 0]
+                logits = model(**samples).logits
+                logits = logits[samples['attention_mask'] >= 0]
+                labels = samples['labels'][samples['attention_mask'] >= 0]
+                labels = F.one_hot(labels, num_classes=logits.shape[-1])
                 loss = F.binary_cross_entropy_with_logits(logits, labels)
                 test_loss += loss
 
