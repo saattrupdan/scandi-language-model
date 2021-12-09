@@ -40,7 +40,7 @@ def main():
         # Load pretrained model
         model = AutoModelForPreTraining.from_pretrained(model_id)
         model.eval()
-        model.cpu()
+        model.cuda()
 
         # Load test dataset
         dataset = Dataset.load_from_disk('data/da_dataset')
@@ -70,7 +70,7 @@ def main():
             samples.pop('text')
 
             # Convert samples to tensors
-            samples = {key: torch.tensor(val).squeeze()
+            samples = {key: torch.tensor(val).squeeze().cuda()
                        for key, val in samples.items()}
 
             # Get loss
