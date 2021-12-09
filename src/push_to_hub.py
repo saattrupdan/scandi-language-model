@@ -5,6 +5,7 @@ from transformers import (AutoModelForPreTraining, PreTrainedTokenizerFast,
                           Trainer)
 from datasets import Dataset
 import sys
+import torch
 
 from pretrain_model import compute_metrics
 
@@ -57,24 +58,18 @@ def main():
                                                         mlm=True,
                                                         mlm_probability=0.15)
 
-        breakpoint()
+        for i in range(len(test_dataset)):
 
-        # Set up training arguments
-        training_args = TrainingArguments(
-            output_dir='roberta-base-wiki-da',
-            per_device_eval_batch_size=4,
-            eval_accumulation_steps=1
-        )
+            # Get test sample
+            sample = test_dataset[i]
 
-        # Initialise trainer
-        trainer = Trainer(model=model,
-                          args=training_args,
-                          data_collator=data_collator,
-                          compute_metrics=compute_metrics,
-                          eval_dataset=test_dataset)
+            breakpoint()
 
-        # Evaluate model
-        trainer.evaluate(test_dataset)
+            # Get predictions
+            with torch.no_grad():
+                outputs = model(**sample)
+
+            breakpoint()
 
         model.push_to_hub(model_id)
 
