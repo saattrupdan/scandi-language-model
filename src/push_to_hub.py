@@ -40,7 +40,7 @@ def main():
         # Load test dataset
         dataset = Dataset.load_from_disk('data/da_dataset')
         splits = dataset.train_test_split(train_size=0.99,
-                                          seed=config['random_seed'])
+                                          seed=4242)
         test_dataset = splits['test']
 
         # Tokenise the dataset
@@ -60,7 +60,8 @@ def main():
         training_args = TrainingArguments(
             output_dir='roberta-base-wiki-da',
             per_device_eval_batch_size=4,
-            eval_accumulation_steps=1
+            eval_accumulation_steps=1,
+            report_to='none'
         )
 
         # Initialise trainer
