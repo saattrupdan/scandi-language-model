@@ -65,7 +65,7 @@ def main():
             samples.pop('text')
 
             # Convert the lists in the sample to pytorch tensors
-            samples = data_collator((samples,))
+            samples = data_collator(samples)
 
             # Get loss
             with torch.no_grad():
