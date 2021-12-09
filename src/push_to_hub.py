@@ -30,7 +30,6 @@ def main():
                                             mask_token='<mask>',
                                             pad_token='<pad>')
         tokeniser.model_max_length = 512
-        tokeniser.push_to_hub(model_id)
 
         # Load pretrained model and push it to the hub
         model = AutoModelForPreTraining.from_pretrained(model_id)
@@ -79,6 +78,8 @@ def main():
         perplexity = torch.exp(test_loss)
         print(f'Perplexity: {perplexity}')
 
+        # Push the tokeniser and model to the hub
+        tokeniser.push_to_hub(model_id)
         model.push_to_hub(model_id)
 
 
