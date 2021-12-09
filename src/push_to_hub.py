@@ -5,6 +5,7 @@ from transformers import (AutoModelForPreTraining, PreTrainedTokenizerFast,
 from datasets import Dataset
 import sys
 import torch
+import torch.nn.functional as F
 from tqdm.auto import trange
 
 
@@ -68,12 +69,14 @@ def main():
             samples.pop('text')
 
             # Convert samples to tensors
-            samples = {key: torch.tensor(val) for key, val in samples.items()}
+            samples = {key: torch.tensor(val).squeeze()
+                       for key, val in samples.items()}
 
             # Get loss
             with torch.no_grad():
-                breakpoint()
-                loss, _ = model(**samples).loss
+                logits = model(**samples).logits
+                loss = F.binary_cross_entropy_with_logits(logits,
+                                                          samples['labels'])
                 test_loss += loss
 
         # Compute the average loss
