@@ -68,6 +68,7 @@ def main():
             samples.pop('text')
 
             # Convert samples to tensors
+            breakpoint()
             samples = {key: torch.tensor(val) for key, val in samples.items()}
 
             # Get loss
