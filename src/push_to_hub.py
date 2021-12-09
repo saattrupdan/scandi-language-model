@@ -1,7 +1,12 @@
 '''Push the model the HF Hub'''
 
-from transformers import AutoModelForPreTraining, PreTrainedTokenizerFast
+from transformers import (AutoModelForPreTraining, PreTrainedTokenizerFast,
+                          TrainingArguments, DataCollatorForLanguageModeling,
+                          Trainer)
+from datasets import Dataset
 import sys
+
+from pretrain_model import compute_metrics
 
 
 def main():
@@ -25,10 +30,49 @@ def main():
                                             unk_token='<unk>',
                                             mask_token='<mask>',
                                             pad_token='<pad>')
+        tokeniser.model_max_length = 512
         tokeniser.push_to_hub(model_id)
 
         # Load pretrained model and push it to the hub
         model = AutoModelForPreTraining.from_pretrained(model_id)
+        model.eval()
+
+        # Load test dataset
+        dataset = Dataset.load_from_disk('data/da_dataset')
+        splits = dataset.train_test_split(train_size=0.99,
+                                          seed=config['random_seed'])
+        test_dataset = splits['test']
+
+        # Tokenise the dataset
+        def tokenise(examples: dict) -> dict:
+            return tokeniser(examples['text'],
+                             truncation=True,
+                             padding=True,
+                             max_length=512)
+        test_dataset = test_dataset.map(tokenise, batched=True)
+
+        # Set up data collator
+        data_collator = DataCollatorForLanguageModeling(tokenizer=tokeniser,
+                                                        mlm=True,
+                                                        mlm_probability=0.15)
+
+        # Set up training arguments
+        training_args = TrainingArguments(
+            output_dir='roberta-base-wiki-da',
+            per_device_eval_batch_size=4,
+            eval_accumulation_steps=1
+        )
+
+        # Initialise trainer
+        trainer = Trainer(model=model,
+                          args=training_args,
+                          data_collator=data_collator,
+                          compute_metrics=compute_metrics,
+                          eval_dataset=test_dataset)
+
+        # Evaluate model
+        trainer.evaluate(test_dataset)
+
         model.push_to_hub(model_id)
 
 
