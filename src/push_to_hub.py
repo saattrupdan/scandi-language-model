@@ -104,7 +104,7 @@ def main(batch_size: int):
         test_loss /= len(test_dataset)
 
         # Compute the perplexity
-        perplexity = torch.exp(test_loss)
+        perplexity = torch.exp(torch.tensor(test_loss))
         print(f'Perplexity: {perplexity}')
 
         # Compute the average accuracy
