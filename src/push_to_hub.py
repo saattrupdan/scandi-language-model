@@ -111,9 +111,12 @@ def main(batch_size: int):
         accuracy = metric.compute()
         print(f'Accuracy: {100 * accuracy:.2f}%')
 
+        answer = input('Do you want to push the model to the hub? [y/n]\n> ')
+
         # Push the tokeniser and model to the hub
-        tokeniser.push_to_hub(model_id)
-        model.push_to_hub(model_id)
+        if answer.lower() == 'y':
+            tokeniser.push_to_hub(model_id)
+            model.push_to_hub(model_id)
 
 
 if __name__ == '__main__':
