@@ -1,13 +1,11 @@
 '''Push the model the HF Hub'''
 
 from transformers import (AutoModelForPreTraining, PreTrainedTokenizerFast,
-                          TrainingArguments, DataCollatorForLanguageModeling,
-                          Trainer)
+                          DataCollatorForLanguageModeling)
 from datasets import Dataset
 import sys
 import torch
-
-from pretrain_model import compute_metrics
+from tqdm.auto import trange
 
 
 def main():
@@ -58,18 +56,28 @@ def main():
                                                         mlm=True,
                                                         mlm_probability=0.15)
 
-        for i in range(len(test_dataset)):
+        test_loss = 0
+        for i in trange(len(test_dataset)):
 
             # Get test sample
             sample = test_dataset[i]
 
-            breakpoint()
+            # Remove the 'text' key from the sample
+            sample.pop('text')
 
-            # Get predictions
+            # Convert the lists in the sample to pytorch tensors
+            sample = data_collator((sample,))
+
+            # Get loss
             with torch.no_grad():
-                outputs = model(**sample)
+                test_loss += model(**sample).loss
 
-            breakpoint()
+        # Compute the average loss
+        test_loss /= len(test_dataset)
+
+        # Compute the perplexity
+        perplexity = torch.exp(test_loss)
+        print(f'Perplexity: {perplexity}')
 
         model.push_to_hub(model_id)
 
