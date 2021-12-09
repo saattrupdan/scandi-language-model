@@ -77,7 +77,8 @@ def main():
                 logits = model(**samples).logits
                 logits = logits[samples['labels'] >= 0]
                 labels = samples['labels'][samples['labels'] >= 0]
-                labels = F.one_hot(labels, num_classes=logits.shape[-1]).long()
+                labels = F.one_hot(labels, num_classes=logits.shape[-1])
+                labels = labels.float()
                 loss = F.binary_cross_entropy_with_logits(logits, labels)
                 test_loss += loss
 
