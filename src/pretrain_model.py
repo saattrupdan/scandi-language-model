@@ -116,7 +116,7 @@ def main(config: dict):
                       train_dataset=train_dataset_128.shuffle())
 
     # Train model on 128-length sequences
-    trainer.train()
+    trainer.train(resume_from_checkpoint=True)
 
     # Tokenise the 512-length dataset and remove the 128-length datasets
     del train_dataset_128
