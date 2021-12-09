@@ -9,7 +9,7 @@ import torch.nn.functional as F
 from tqdm.auto import tqdm
 
 
-def main():
+def main(batch_size: int):
     '''Push the model to the HF Hub'''
     if len(sys.argv) == 3:
 
@@ -61,10 +61,10 @@ def main():
         # Evaluate the model on the test dataset
         test_loss = 0
         pbar = tqdm(total=len(test_dataset), desc='Evaluating')
-        for i in range(0, len(test_dataset), 8):
+        for i in range(0, len(test_dataset), batch_size):
 
             # Get test sample
-            samples = test_dataset[i:i+8]
+            samples = test_dataset[i:i+batch_size]
 
             # Remove the 'text' key from the sample
             samples.pop('text')
@@ -84,7 +84,7 @@ def main():
                 test_loss += loss
 
             # Update progress bar
-            pbar.update(8)
+            pbar.update(batch_size)
 
         # Close progress bar
         pbar.close()
@@ -102,4 +102,7 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    if len(sys.argv) == 2:
+        main(batch_size=int(sys.argv[1]))
+    else:
+        main(batch_size=16)
