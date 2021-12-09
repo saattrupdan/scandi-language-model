@@ -7,6 +7,7 @@ import sys
 import torch
 import torch.nn.functional as F
 from tqdm.auto import tqdm
+import torchmetrics as tm
 
 
 def main(batch_size: int):
@@ -16,6 +17,9 @@ def main(batch_size: int):
         # Fetch arguments
         model_id = sys.argv[1]
         tokenizer_id = sys.argv[2]
+
+        # Set up metric
+        metric = tm.Accuracy()
 
         # Ensure that `tokenizer_id` has file suffix
         if not tokenizer_id.endswith('.json'):
@@ -73,15 +77,22 @@ def main(batch_size: int):
             samples = {key: torch.tensor(val).squeeze().cuda()
                        for key, val in samples.items()}
 
-            # Get loss
+            # Compute metrics
             with torch.no_grad():
+
+                # Get predictions
                 logits = model(**samples).logits
                 logits = logits[samples['labels'] >= 0]
                 labels = samples['labels'][samples['labels'] >= 0]
-                labels = F.one_hot(labels, num_classes=logits.shape[-1])
-                labels = labels.float()
-                loss = F.binary_cross_entropy_with_logits(logits, labels)
-                test_loss += loss
+
+                # Compute loss
+                one_hotted = (F.one_hot(labels, num_classes=logits.shape[-1])
+                               .float())
+                loss = F.binary_cross_entropy_with_logits(logits, one_hotted)
+                test_loss += float(loss)
+
+                # Compute accuracy
+                metric(logits.softmax(dim=-1), labels)
 
             # Update progress bar
             pbar.update(batch_size)
@@ -96,13 +107,14 @@ def main(batch_size: int):
         perplexity = torch.exp(test_loss)
         print(f'Perplexity: {perplexity}')
 
+        # Compute the average accuracy
+        accuracy = metric.compute()
+        print(f'Accuracy: {100 * accuracy:.2f}%')
+
         # Push the tokeniser and model to the hub
         tokeniser.push_to_hub(model_id)
         model.push_to_hub(model_id)
 
 
 if __name__ == '__main__':
-    if len(sys.argv) == 2:
-        main(batch_size=int(sys.argv[1]))
-    else:
-        main(batch_size=16)
+    main(batch_size=8)
