@@ -101,7 +101,7 @@ def main(batch_size: int):
         pbar.close()
 
         # Compute the average loss
-        test_loss /= len(test_dataset)
+        test_loss /= (len(test_dataset) // batch_size)
 
         # Compute the perplexity
         perplexity = torch.exp(torch.tensor(test_loss))
