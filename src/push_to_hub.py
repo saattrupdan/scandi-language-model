@@ -56,7 +56,6 @@ def main():
             examples = data_collator((examples,), return_tensors='pt')
             return examples
         test_dataset = test_dataset.map(preprocess)
-        breakpoint()
 
         # Evaluate the model on the test dataset
         test_loss = 0
@@ -67,6 +66,9 @@ def main():
 
             # Remove the 'text' key from the sample
             samples.pop('text')
+
+            # Convert samples to tensors
+            samples = {key: torch.tensor(val) for key, val in samples.items()}
 
             # Get loss
             with torch.no_grad():
