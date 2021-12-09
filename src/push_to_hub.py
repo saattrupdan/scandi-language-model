@@ -6,7 +6,7 @@ from datasets import Dataset
 import sys
 import torch
 import torch.nn.functional as F
-from tqdm.auto import trange
+from tqdm.auto import tqdm
 
 
 def main():
@@ -60,7 +60,8 @@ def main():
 
         # Evaluate the model on the test dataset
         test_loss = 0
-        for i in trange(0, len(test_dataset), 8):
+        pbar = tqdm(total=len(test_dataset), desc='Evaluating')
+        for i in range(0, len(test_dataset), 8):
 
             # Get test sample
             samples = test_dataset[i:i+8]
@@ -81,6 +82,12 @@ def main():
                 labels = labels.float()
                 loss = F.binary_cross_entropy_with_logits(logits, labels)
                 test_loss += loss
+
+            # Update progress bar
+            pbar.update(8)
+
+        # Close progress bar
+        pbar.close()
 
         # Compute the average loss
         test_loss /= len(test_dataset)
