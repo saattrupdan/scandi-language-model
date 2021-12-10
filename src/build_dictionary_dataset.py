@@ -9,11 +9,11 @@ def main():
     '''Main function'''
 
     # Set up the paths
-    csv_path = Path('data') / 'retskrivningsordbog-basic.csv'
-    txt_path = Path('data') / 'retskrivningsordbog-basic.txt'
+    csv_path = Path('data') / 'retskrivningsordbog.csv'
+    txt_path = Path('data') / 'retskrivningsordbog.txt'
 
     # Extract and store the words
-    (pd.read_csv(csv_path, sep=';', names=['word', 'type'])
+    (pd.read_csv(csv_path, sep=';', names=['baseform', 'word', 'type'])
        .word
        .str.replace('[0-9]+[.] ', '', regex=True)
        .str.lower()
