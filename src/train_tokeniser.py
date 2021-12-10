@@ -61,7 +61,7 @@ def main():
                                       unk_token='<unk>')
 
     # Train the tokeniser
-    tokeniser.train_from_iterator(iterator=dataset['text'][:1000],
+    tokeniser.train_from_iterator(iterator=dataset['text'],
                                   trainer=trainer)
 
     # Save the tokeniser
