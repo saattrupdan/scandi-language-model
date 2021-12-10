@@ -82,17 +82,13 @@ def main(batch_size: int):
 
                 # Get predictions
                 logits = model(**samples).logits
-                logits = logits[samples['labels'] >= 0]
-                labels = samples['labels'][samples['labels'] >= 0]
 
                 # Compute loss
-                one_hotted = (F.one_hot(labels, num_classes=logits.shape[-1])
-                               .float())
-                loss = F.binary_cross_entropy_with_logits(logits, one_hotted)
+                loss = F.cross_entropy(logits, samples['labels'])
                 test_loss += float(loss)
 
                 # Compute accuracy
-                metric(logits.softmax(dim=-1), labels)
+                metric(logits.softmax(dim=-1), samples['labels'])
 
             # Update progress bar
             pbar.update(batch_size)
