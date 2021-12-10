@@ -94,7 +94,9 @@ def main(batch_size: int):
                 test_loss += float(loss)
 
                 # Compute accuracy
-                metric(logits.softmax(dim=-1), labels)
+                predictions = logits.softmax(dim=-1)[labels >= 0]
+                labels = labels[labels >= 0]
+                metric(predictions, labels)
 
             # Update progress bar
             pbar.update(batch_size)
