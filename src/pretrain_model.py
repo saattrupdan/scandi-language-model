@@ -12,16 +12,24 @@ import os
 import warnings
 import wandb
 from dotenv import load_dotenv
+import sys
 
 
 load_dotenv()
 
 
-wandb.init(project="roberta-base-wiki-da", entity="saattrupdan")
-
-
 def main(config: dict):
     '''Main function'''
+
+    # Raise an error if no model name is provided
+    if len(sys.argv) == 1:
+        raise ValueError('Please provide the model name as the first argument')
+
+    # Load the model name
+    model_name = sys.argv[1]
+
+    # Intialise wandb
+    wandb.init(project=model_name, entity="saattrupdan")
 
     # Disable datasets caching
     datasets.set_caching_enabled(False)
@@ -89,7 +97,7 @@ def main(config: dict):
     acc_steps = 300 // (batch_size * device_count)
 
     # Set up training arguments
-    training_args = TrainingArguments(output_dir='roberta-base-wiki-da',
+    training_args = TrainingArguments(output_dir=model_name,
                                       overwrite_output_dir=True,
                                       logging_strategy='steps',
                                       save_strategy='steps',
