@@ -83,6 +83,8 @@ def main(batch_size: int):
                 # Get predictions
                 logits = model(**samples).logits
 
+                breakpoint()
+
                 # Compute loss
                 loss = F.cross_entropy(logits, samples['labels'])
                 test_loss += float(loss)
