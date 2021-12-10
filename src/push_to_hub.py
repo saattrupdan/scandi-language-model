@@ -83,14 +83,18 @@ def main(batch_size: int):
                 # Get predictions
                 logits = model(**samples).logits
 
-                breakpoint()
+                # Reshape the predictions and labels to shape
+                # (batch_size x seq_len, vocab_size) and
+                # (batch_size x seq_len,), respectively
+                logits = logits.view(-1, logits.shape[-1])
+                labels = samples['labels'].view(-1)
 
                 # Compute loss
-                loss = F.cross_entropy(logits, samples['labels'])
+                loss = F.cross_entropy(logits, labels)
                 test_loss += float(loss)
 
                 # Compute accuracy
-                metric(logits.softmax(dim=-1), samples['labels'])
+                metric(logits.softmax(dim=-1), labels)
 
             # Update progress bar
             pbar.update(batch_size)
