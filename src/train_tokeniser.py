@@ -1,9 +1,10 @@
 '''Script for training a tokeniser'''
 
-from tokenizers import (normalizers, pre_tokenizers, tokenizers,
-                        processors, trainers, models, decoders, AddedToken)
+from tokenizers import trainers
 from datasets import Dataset
 import datasets
+import pandas as pd
+from interfix import InterfixTokeniser
 
 
 datasets.set_caching_enabled(False)
@@ -15,74 +16,64 @@ def main():
     # Load the dataset
     dataset = Dataset.load_from_disk('data/da_dataset')
 
-    # Load the dictionary
-    # csv_path = 'data/retskrivningsordbog-basic.csv'
-    # dictionary = pd.read_csv(csv_path, sep=';', names=['word', 'type'])
-    # dictionary['type'] = dictionary.type.str.split(',')
-    # dictionary = (dictionary
-    #               .explode('type')
-    #               .query('type in ["sb.", "talord", "sb. pl."]')
-    #               .word
-    #               .str.replace('[0-9]+[.] ', '', regex=True)
-    #               .str.lower()
-    #               .drop_duplicates()
-    #               .sort_values(key=lambda x: x.str.len())
-    #               .tolist())
-    # dictionary = [word for word in dictionary
-    #               if ' ' not in word and len(word) > 2]
+    # Load the dictionary file and load all the nouns from it
+    csv_path = 'data/retskrivningsordbog.csv'
+    dictionary = pd.read_csv(csv_path, sep=';', names=['base', 'word', 'type'])
+    dictionary.type = dictionary.type.str.split(',')
+    dictionary = (dictionary
+                  .explode('type')
+                  .query('type in ["sb.", "talord", "sb. pl."]'))
 
-    # Initialise the tokeniser model
-    model = models.Unigram()
+    # Remove banned words
+    banned_words = ['ren', 'ger']
+    dictionary = dictionary[~dictionary.word.isin(banned_words)]
+
+    # Load the small dictionary
+    small_dictionary = (dictionary
+                        .base
+                        .str.replace('[0-9]+[.] ', '', regex=True)
+                        .str.lower()
+                        .drop_duplicates()
+                        .sort_values(key=lambda x: x.str.len())
+                        .tolist())
+    small_dictionary = [word for word in small_dictionary
+                        if ' ' not in word and len(word) > 1]
+
+    # Load the large dictionary
+    dictionary = (dictionary
+                  .word
+                  .str.replace('[0-9]+[.] ', '', regex=True)
+                  .str.lower()
+                  .drop_duplicates()
+                  .sort_values(key=lambda x: x.str.len())
+                  .tolist())
+    dictionary = [word for word in dictionary
+                  if ' ' not in word and len(word) > 1]
 
     # Initialise the tokeniser
-    tokeniser = tokenizers.Tokenizer(model=model)
-
-    # Initialise the special tokens
-    special_tokens = [
-        AddedToken('<s>', single_word=True, normalized=False),
-        AddedToken('</s>', single_word=True, normalized=False),
-        AddedToken('<unk>', single_word=True, normalized=False),
-        AddedToken('<mask>', single_word=True, normalized=False),
-        AddedToken('<pad>', single_word=True, normalized=False),
-    ]
-    tokeniser.add_special_tokens(special_tokens)
-
-    # Initialise the normaliser
-    normaliser = normalizers.Sequence([
-        normalizers.NFKC(),
-        normalizers.Lowercase()
-    ])
-    tokeniser.normalizer = normaliser
-
-    # Initialise the pre-tokeniser
-    pre_tokeniser = pre_tokenizers.Metaspace(add_prefix_space=True)
-    tokeniser.pre_tokenizer = pre_tokeniser
-
-    # Initialise the post-processor
-    params = dict(cls=('<s>', 0), sep=('</s>', 1))
-    post_processor = processors.RobertaProcessing(**params)
-    tokeniser.post_processor = post_processor
-
-    # Initialise the decoder
-    decoder = decoders.Metaspace(add_prefix_space=True)
-    tokeniser.decoder = decoder
+    tokeniser = InterfixTokeniser(small_dictionary=small_dictionary,
+                                  dictionary=dictionary,
+                                  interfixes=['e', 'n', 's'])
 
     # Initialise the trainer
-    trainer = trainers.UnigramTrainer(vocab_size=32_000,
-                                      special_tokens=special_tokens,
+    trainer = trainers.UnigramTrainer(vocab_size=50_000,
+                                      special_tokens=tokeniser.special_tokens,
                                       unk_token='<unk>')
 
     # Train the tokeniser
-    tokeniser.train_from_iterator(iterator=dataset['text'], trainer=trainer)
+    tokeniser.train_from_iterator(iterator=dataset['text'][:10000],
+                                  trainer=trainer)
 
     # Save the tokeniser
-    tokeniser.save('wiki-da.json')
+    tokeniser.save('interfix-tokeniser-wiki-da')
+
+    return tokeniser
 
 
 if __name__ == '__main__':
     main()
 
-    tokeniser = tokenizers.Tokenizer.from_file('wiki-da.json')
+    tokeniser = InterfixTokeniser.load('interfix-tokeniser-wiki-da')
 
     # Load other tokenisers
     from transformers import AutoTokenizer
