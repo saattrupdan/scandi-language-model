@@ -55,7 +55,6 @@ class InterfixTokeniser:
             AddedToken('</s>', single_word=True, normalized=False),
             AddedToken('<unk>', single_word=True, normalized=False),
             AddedToken('<mask>', single_word=True, normalized=False),
-            AddedToken('<interfix>', single_word=True, normalized=False),
         ]
         self._tokeniser.add_special_tokens(self.special_tokens)
 
@@ -125,7 +124,7 @@ class InterfixTokeniser:
             directory.mkdir()
 
         # Save the tokeniser without the interfix pre-tokeniser
-        self._tokeniser.pre_tokenizer = pre_tokenizers.Whitespace()
+        self._tokeniser.pre_tokenizer = None
         self._tokeniser.save(str(directory / 'base.json'))
 
         # Save the small dictionary
@@ -282,7 +281,7 @@ class InterfixPreTokeniser:
 
                 else:
                     splits.append(normalized_string[:char_idx])
-                    splits.append(NormalizedString('<interfix>'))
+                    splits.append(normalized_string[char_idx])
                     splits.extend(remaining_splits)
                     return splits
 

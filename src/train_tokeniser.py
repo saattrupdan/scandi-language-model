@@ -61,7 +61,7 @@ def main():
                                       unk_token='<unk>')
 
     # Train the tokeniser
-    tokeniser.train_from_iterator(iterator=dataset['text'][:10000],
+    tokeniser.train_from_iterator(iterator=dataset['text'][:1000],
                                   trainer=trainer)
 
     # Save the tokeniser
@@ -112,7 +112,8 @@ if __name__ == '__main__':
         'tornebusk',
         'tjørnebusk',
         'kapersbusk',
-        'ribsbusk'
+        'ribsbusk',
+        'angrebsvinkel'
     ]
     for example in test_examples:
         print(example, tokeniser.encode(example).tokens)
