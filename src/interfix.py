@@ -124,7 +124,7 @@ class InterfixTokeniser:
             directory.mkdir()
 
         # Save the tokeniser without the interfix pre-tokeniser
-        self._tokeniser.pre_tokenizer = None
+        self._tokeniser.pre_tokenizer = pre_tokenizers.Whitespace()
         self._tokeniser.save(str(directory / 'base.json'))
 
         # Save the small dictionary
