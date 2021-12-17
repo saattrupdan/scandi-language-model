@@ -188,8 +188,8 @@ if __name__ == '__main__':
                   warmup_steps=10_000,
                   max_steps_128=900_000,
                   max_steps_512=100_000,
-                  batch_size_128=16,
-                  batch_size_512=4,
+                  batch_size_128=64,
+                  batch_size_512=16,
                   patience=10,
                   random_seed=4242)
     main(config=config)
