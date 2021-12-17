@@ -21,6 +21,9 @@ def main(batch_size: int):
         # Set up metric
         metric = tm.Accuracy().cuda()
 
+        # Disable tokenizer parallelization
+        os.environ['TOKENIZERS_PARALLELISM'] = 'false'
+
         # Ensure that `tokenizer_id` has file suffix
         if not tokenizer_id.endswith('.json'):
             tokenizer_id += '.json'
