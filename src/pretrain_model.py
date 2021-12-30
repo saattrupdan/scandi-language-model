@@ -111,8 +111,6 @@ def main(config: dict):
                                       warmup_steps=config['warmup_steps'],
                                       weight_decay=config['weight_decay'],
                                       report_to='all',
-                                      push_to_hub=True,
-                                      push_to_hub_token=os.environ['HF_KEY'],
                                       per_device_eval_batch_size=batch_size,
                                       eval_accumulation_steps=1)
 

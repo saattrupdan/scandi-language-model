@@ -5,6 +5,7 @@ from transformers import (AutoModelForPreTraining, PreTrainedTokenizerFast,
 from datasets import Dataset
 import sys
 import torch
+import os
 import torch.nn.functional as F
 from tqdm.auto import tqdm
 import torchmetrics as tm
